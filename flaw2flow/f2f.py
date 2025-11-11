@@ -45,61 +45,61 @@ class F2F:
 
 
         # --- Positive / Negative Variants ---
-        >> test:  validate_Int(5, positive=True)
-        >> error: validate_Int(-1, positive=True)
+        >>test:  cls.validate_Int(5, positive=True) is None
+        >>error: cls.validate_Int(-1, positive=True)
 
-        >> test:  validate_Int(-5, negative=True)
-        >> error: validate_Int(3, negative=True)
+        >>test:  cls.validate_Int(-5, negative=True) is None
+        >>error: cls.validate_Int(3, negative=True)
 
-        >> test:  validate_Int(0, positive_0=True)
-        >> error: validate_Int(-5, positive_0=True)
+        >>test:  cls.validate_Int(0, positive_0=True) is None
+        >>error: cls.validate_Int(-5, positive_0=True)
 
-        >> test:  validate_Int(0, negative_0=True)
-        >> error: validate_Int(4, negative_0=True)
+        >>test:  cls.validate_Int(0, negative_0=True) is None
+        >>error: cls.validate_Int(4, negative_0=True)
 
-        >> test:  validate_Int(3, non_0=True)
-        >> error: validate_Int(0, non_0=True)
+        >>test:  cls.validate_Int(3, non_0=True) is None
+        >>error: cls.validate_Int(0, non_0=True)
 
         # --- Even / Odd ---
-        >> test:  validate_Int(8, even=True)
-        >> error: validate_Int(7, even=True)
+        >>test:  cls.validate_Int(8, even=True) is None
+        >>error: cls.validate_Int(7, even=True)
 
-        >> test:  validate_Int(7, odd=True)
-        >> error: validate_Int(6, odd=True)
+        >>test:  cls.validate_Int(7, odd=True) is None
+        >>error: cls.validate_Int(6, odd=True)
 
         # --- Min / Max / Range ---
-        >> test:  validate_Int(5, min_value=2)
-        >> error: validate_Int(1, min_value=2)
+        >>test:  cls.validate_Int(5, min_value=2) is None
+        >>error: cls.validate_Int(1, min_value=2)
 
-        >> test:  validate_Int(5, max_value=10)
-        >> error: validate_Int(12, max_value=10)
+        >>test:  cls.validate_Int(5, max_value=10) is None
+        >>error: cls.validate_Int(12, max_value=10)
 
-        >> error:  validate_Int(5, value_range=(1, 10))
-        >> error: validate_Int(0, value_range=(1, 10))
+        >>error:  cls.validate_Int(5, value_range=(1, 10))
+        >>error: cls.validate_Int(0, value_range=(1, 10))
 
         # --- Divisors / Multiples ---
-        >> test:  validate_Int(12, divisors=[2, 3])
-        >> error: validate_Int(12, divisors=[5])
+        >>test:  cls.validate_Int(12, divisors=[2, 3]) is None
+        >>error: cls.validate_Int(12, divisors=[5])
 
-        >> test:  validate_Int(3, multiples=[6, 9])
-        >> error: validate_Int(4, multiples=[6, 9])
+        >>test:  cls.validate_Int(3, multiples=[6, 9]) is None
+        >>error: cls.validate_Int(4, multiples=[6, 9])
 
         # --- Prime / Composite ---
-        >> test:  validate_Int(7, prime=True)
-        >> error: validate_Int(8, prime=True)
+        >>test:  cls.validate_Int(7, prime=True) is None
+        >>error: cls.validate_Int(8, prime=True)
 
-        >> test:  validate_Int(9, composite=True)
-        >> error: validate_Int(7, composite=True)
+        >>test:  cls.validate_Int(9, composite=True) is None
+        >>error: cls.validate_Int(7, composite=True)
 
         # --- Allowed List ---
-        >> test:  validate_Int(20, allowed=[10, 20, 30])
-        >> error: validate_Int(25, allowed=[10, 20, 30])
+        >>test:  cls.validate_Int(20, allowed=[10, 20, 30]) is None
+        >>error: cls.validate_Int(25, allowed=[10, 20, 30])
 
         # --- Type Checking ---
-        >> error: validate_Int("5", positive=True)
-        >> error: validate_Int(True, positive=True)
-        >> error: validate_Int(3.0, positive=True)
-        >> test:  validate_Int(3, positive=True)
+        >>error: cls.validate_Int("5", positive=True)
+        >>error: cls.validate_Int(True, positive=True)
+        >>error: cls.validate_Int(3.0, positive=True)
+        >>test:  cls.validate_Int(3, positive=True) is None
 
         """
 
@@ -137,7 +137,7 @@ class F2F:
         if max_value is not None and target > max_value:
             raise ValueError(f"Value must be <= {max_value}")
 
-        if range is not None:
+        if value_range is not None:
             min_r, max_r = value_range
             if target < min_r or target > max_r:
                 raise ValueError(f"Value must be within range ({min_r}, {max_r})")
