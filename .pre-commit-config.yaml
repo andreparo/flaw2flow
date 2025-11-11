@@ -1,0 +1,39 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+      - id: black
+        args: ["--line-length", "135", "flaw2flow"]
+
+  - repo: https://github.com/PyCQA/pylint
+    rev: v3.3.1
+    hooks:
+      - id: pylint
+        name: "Pylint"
+        pass_filenames: false     # <-- critical: disables file filtering
+        args: [
+          "--rcfile=.pylintrc",
+          "."
+        ]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.1        # or latest stable
+    hooks:
+      - id: mypy
+        name: "Mypy Type Checker"
+        args: [
+          "--config-file=mypy.ini",  # use your config file
+          "--show-error-codes",      # helpful to identify specific warnings
+          "--pretty",                # readable output
+        ]
+  - repo: https://github.com/andreparo/DocCheck
+    rev: v1.0.14
+    hooks:
+      - id: doccheck
+        pass_filenames: false
+        args: [
+          "flaw2flow"
+        ]
+
+
+

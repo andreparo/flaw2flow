@@ -1,0 +1,9 @@
+# Python bytecode cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# mypy type checker cache
+.mypy_cache/
+.dmypy.json
