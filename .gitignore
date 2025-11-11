@@ -7,3 +7,7 @@ __pycache__/
 # mypy type checker cache
 .mypy_cache/
 .dmypy.json
+
+dist/
+
+.pypirc
