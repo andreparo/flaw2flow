@@ -1,0 +1,8 @@
+LICENSE
+pyproject.toml
+flaw2flow/__init__.py
+flaw2flow/f2f.py
+flaw2flow.egg-info/PKG-INFO
+flaw2flow.egg-info/SOURCES.txt
+flaw2flow.egg-info/dependency_links.txt
+flaw2flow.egg-info/top_level.txt

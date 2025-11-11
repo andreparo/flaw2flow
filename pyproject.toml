@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flaw2flow"
+version = "0.1.1"
+description = "flaw2flow is a Python module made to validate data in Python"
+readme = "README.md"
+authors = [
+  { name = "Andrea Parodi", email = "andrea.parodi.mi@gmail.com" },
+]
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+keywords = ["validation", "assertion", "python"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/andreparo/flaw2flow"
+Repository = "https://github.com/andreparo/flaw2flow"
+Issues = "https://github.com/andreparo/flaw2flow/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["flaw2flow*"]
