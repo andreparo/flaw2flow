@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flaw2flow"
-version = "0.1.3"
+version = "0.1.5"
 description = "flaw2flow is a Python module made to validate data in Python"
 readme = "README.md"
 authors = [
