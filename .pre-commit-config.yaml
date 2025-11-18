@@ -27,7 +27,7 @@ repos:
           "--pretty",                # readable output
         ]
   - repo: https://github.com/andreparo/DocCheck
-    rev: v1.0.20
+    rev: v1.0.21
     hooks:
       - id: doccheck
         pass_filenames: false

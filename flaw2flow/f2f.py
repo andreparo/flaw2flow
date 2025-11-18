@@ -1,8 +1,13 @@
 from typing import Any, Sequence
+import string
+import re
+import json
 
 
 class F2F:
     """Class providing general purpose validators"""
+
+    skip_flag: bool = False
 
     @classmethod
     def validate_Int(
@@ -47,6 +52,8 @@ class F2F:
         - str_min_length: int
         - str_max_length: int
         """
+        if cls.skip_flag:
+            return
 
         # --- Type and base validation ---
         if not isinstance(target, int) or isinstance(target, bool):
@@ -237,6 +244,8 @@ class F2F:
         - str_min_length: int pay attention to scientific notation
         - str_max_length: int pay attention to scientific notation
         """
+        if cls.skip_flag:
+            return
 
         # --- Type and base validation ---
         if not (isinstance(target, (float, int))) or isinstance(target, bool):
@@ -361,6 +370,8 @@ class F2F:
         - must_be_true: bool → ensures value is True
         - must_be_false: bool → ensures value is False
         """
+        if cls.skip_flag:
+            return
 
         # --- Type check ---
         if not isinstance(target, bool):
@@ -466,10 +477,8 @@ class F2F:
         ascii_only : bool
             Require all characters to be ASCII.
         """
-
-        import re
-        import string
-        import json
+        if cls.skip_flag:
+            return
 
         # --- Type check ---
         if not isinstance(target, str):
@@ -719,13 +728,15 @@ class F2F:
             The object to validate, must be of type `dict`.
         schema : dict[str, type | tuple[type, ...]] | None
             Expected dictionary schema, mapping keys to allowed types or tuple of allowed types.
-            Example:
-                {"name": str, "age": (int, float)}
+            Example:, "age": (int, float)}
+                {"name": str
         allow_other_keys : bool
             Whether to allow keys that are not defined in the schema.
         keys_must_be_strings : bool
             If True, enforces that all dictionary keys are strings.
         """
+        if cls.skip_flag:
+            return
 
         # --- Type check ---
         if not isinstance(target, dict):
@@ -843,6 +854,8 @@ class F2F:
         forbidden_values : Sequence[Any] | None
             Optional blacklist of disallowed element values.
         """
+        if cls.skip_flag:
+            return
 
         # --- Type check ---
         if not isinstance(target, list):
@@ -1007,6 +1020,8 @@ class F2F:
         mean_range : tuple[float, float] | None
             Inclusive range for arithmetic mean of elements.
         """
+        if cls.skip_flag:
+            return
 
         # --- Base structure and type validation ---
         cls.validate_List(
@@ -1209,6 +1224,8 @@ class F2F:
             Optional element whitelist or blacklist.
         All other keyword arguments are forwarded to `validate_String()`.
         """
+        if cls.skip_flag:
+            return
 
         # --- Type check ---
         if not isinstance(target, list):
@@ -1318,4 +1335,167 @@ class F2F:
     >>error: cls.validate_String_List(["alert"], forbidden=["danger","alert"])
     >>test: cls.validate_String_List(["ascii", "only"], ascii_only=True) is None
     >>error: cls.validate_String_List(["café"], ascii_only=True)
+    """
+
+    @classmethod
+    def validate_Bytes(
+        cls,
+        target: Any,
+        min_length: int | None = None,
+        max_length: int | None = None,
+        range_length: tuple[int, int] | None = None,
+        ascii_only: bool = False,
+        hex_only: bool = False,
+        allow_empty: bool = False,
+    ) -> None:
+        """Validate bytes objects.
+
+        Parameters
+        ----------
+        target : Any
+            Must be of type `bytes`.
+        min_length : int | None
+            Minimum allowed length (inclusive).
+        max_length : int | None
+            Maximum allowed length (inclusive).
+        range_length : tuple[int, int] | None
+            Required inclusive length range (min, max).
+        ascii_only : bool
+            If True, ensures all bytes are valid ASCII (0-127).
+        hex_only : bool
+            If True, ensures all bytes represent hex characters 0-9, a-f, A-F.
+        allow_empty : bool
+            If False, ensures all bytes represent are not empty
+        """
+        if cls.skip_flag:
+            return
+
+        # --- Type check ---
+        if not isinstance(target, bytes):
+            raise TypeError(f"Expected bytes, got {type(target).__name__}")
+
+        length = len(target)
+
+        # --- Length checks ---
+        if min_length is not None and length < min_length:
+            raise ValueError(f"Bytes length must be >= {min_length}, got {length}")
+
+        if max_length is not None and length > max_length:
+            raise ValueError(f"Bytes length must be <= {max_length}, got {length}")
+
+        if range_length is not None:
+            min_r, max_r = range_length
+            if not min_r <= length <= max_r:
+                raise ValueError(f"Bytes length must be within range ({min_r}, {max_r}), got {length}")
+
+        # --- ASCII check ---
+        if ascii_only:
+            # ASCII: 0–127
+            for b in target:
+                if b > 127:
+                    raise ValueError(f"Non-ASCII byte {b!r} found in bytes object")
+
+        # --- Hex check ---
+        if hex_only:
+            allowed = b"0123456789abcdefABCDEF"
+            for b in target:
+                if b not in allowed:
+                    raise ValueError(f"Byte {b!r} is not a valid hexadecimal character")
+
+        # --- Empty check ---
+        if not allow_empty and length == 0:
+            raise ValueError("Empty bytes are not allowed")
+
+    """
+    DOCCHECK TESTS:
+
+    # --- Type Checks ---
+    >>test: cls.validate_Bytes(b"hello") is None
+    >>error: cls.validate_Bytes("hello")            # not bytes
+    >>error: cls.validate_Bytes(123)
+    >>error: cls.validate_Bytes(bytearray(b"abc"))  # not bytes
+    >>error: cls.validate_Bytes(None)
+
+    # --- Min Length ---
+    >>test: cls.validate_Bytes(b"abc", min_length=3) is None
+    >>error: cls.validate_Bytes(b"ab", min_length=3)
+    >>test: cls.validate_Bytes(b"", min_length=0, allow_empty=True) is None
+    >>error: cls.validate_Bytes(b"", min_length=1)
+
+    # --- Max Length ---
+    >>test: cls.validate_Bytes(b"abc", max_length=3) is None
+    >>test: cls.validate_Bytes(b"ab", max_length=3) is None
+    >>error: cls.validate_Bytes(b"abcd", max_length=3)
+
+    # --- Range Length ---
+    >>test: cls.validate_Bytes(b"abc", range_length=(3,5)) is None
+    >>test: cls.validate_Bytes(b"abcd", range_length=(3,5)) is None
+    >>error: cls.validate_Bytes(b"ab", range_length=(3,5))
+    >>error: cls.validate_Bytes(b"abcdef", range_length=(3,5))
+
+    # --- ASCII Only ---
+    # ASCII bytes: all <= 127
+    >>test: cls.validate_Bytes(b"Hello123!? ", ascii_only=True) is None
+    >>error: cls.validate_Bytes("café".encode("utf-8"), ascii_only=True) 
+    >>error: cls.validate_Bytes(bytes([200]), ascii_only=True)           # 200 > 127
+    >>test: cls.validate_Bytes(bytes([0, 10, 127]), ascii_only=True) is None
+
+    # --- HEX Only ---
+    # Valid hex characters: 0-9 a-f A-F
+    >>test: cls.validate_Bytes(b"0a1F", hex_only=True) is None
+    >>test: cls.validate_Bytes(b"ABCDEF", hex_only=True) is None
+    >>test: cls.validate_Bytes(b"1234567890abcdef", hex_only=True) is None
+    >>error: cls.validate_Bytes(b"0g", hex_only=True)    # g not valid
+    >>error: cls.validate_Bytes(b"x1", hex_only=True)    # x not valid
+    >>error: cls.validate_Bytes(b"-A", hex_only=True)    # '-' not valid
+    >>test: cls.validate_Bytes(b"", hex_only=True, allow_empty=True) is None     # empty is OK logically, but check if allowed
+    >>test: cls.validate_Bytes(b"", hex_only=True, allow_empty=True) is None  # empty is valid hex string
+
+    # --- Combined Rules ---
+    >>test: cls.validate_Bytes(b"AB12", min_length=2, max_length=4, hex_only=True) is None
+    >>error: cls.validate_Bytes(b"AB12G", min_length=2, max_length=6, hex_only=True)
+    >>error: cls.validate_Bytes(b"ABCDEF", ascii_only=True, max_length=3)  # fails max_length first
+
+
+    # Single-byte tests
+    >>test: cls.validate_Bytes(b"A", ascii_only=True) is None
+    >>error: cls.validate_Bytes(bytes([255]), ascii_only=True)
+    >>error: cls.validate_Bytes(bytes([128]), ascii_only=True)
+
+    # --- Boundary Conditions ---
+    >>test: cls.validate_Bytes(bytes([127]), ascii_only=True) is None
+    >>error: cls.validate_Bytes(bytes([128]), ascii_only=True)
+
+    >>test: cls.validate_Bytes(b"F", hex_only=True) is None
+    >>test: cls.validate_Bytes(b"f", hex_only=True) is None
+    >>error: cls.validate_Bytes(b"Z", hex_only=True)
+
+    # --- Invalid combinations (should fail logically) ---
+    >>error: cls.validate_Bytes(b"abcdefgh", hex_only=True)  # only ascii letters a-f allowed
+    >>error: cls.validate_Bytes(b"\xff\x10", ascii_only=True)
+    >>error: cls.validate_Bytes(b"\x80", ascii_only=True)
+
+    # --- Allow Empty ---
+    >>error: cls.validate_Bytes(b"", allow_empty=False)
+    >>test: cls.validate_Bytes(b"", allow_empty=True) is None
+
+    # --- Allow Empty with other rules ---
+    >>test: cls.validate_Bytes(b"", allow_empty=True, ascii_only=True) is None
+    >>test: cls.validate_Bytes(b"", allow_empty=True, hex_only=True) is None
+    >>error: cls.validate_Bytes(b"", allow_empty=False, ascii_only=True)
+    >>error: cls.validate_Bytes(b"", allow_empty=False, hex_only=True)
+
+    # --- Empty vs min_length ---
+    >>error: cls.validate_Bytes(b"", allow_empty=False, min_length=1)
+    >>error: cls.validate_Bytes(b"", allow_empty=True, min_length=1)  # min_length still enforced
+
+    # --- Empty vs range_length ---
+    >>test: cls.validate_Bytes(b"", allow_empty=True, range_length=(0, 5)) is None
+    >>error: cls.validate_Bytes(b"", allow_empty=True, range_length=(1, 5))
+    >>error: cls.validate_Bytes(b"", allow_empty=False, range_length=(0, 5))
+
+    # --- Empty vs max_length ---
+    >>test: cls.validate_Bytes(b"", allow_empty=True, max_length=0) is None
+    >>error: cls.validate_Bytes(b"", allow_empty=False, max_length=0)
+
     """
