@@ -2,6 +2,7 @@ from typing import Any, Sequence
 import string
 import re
 import json
+import inspect
 
 
 class F2F:
@@ -1630,3 +1631,7 @@ class F2F:
     >>test: cls.validate_Tuple((1, 2, 3), forbidden_values=[9, 10]) is None
     >>error: cls.validate_Tuple((1, 2, 9), forbidden_values=[9, 10])
     """
+
+    # TODO validate timedelta
+
+    # TODO validate as path, emails, urls, ip, ports,
