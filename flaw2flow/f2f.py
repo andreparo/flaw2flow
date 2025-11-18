@@ -1499,3 +1499,134 @@ class F2F:
     >>error: cls.validate_Bytes(b"", allow_empty=False, max_length=0)
 
     """
+
+    @classmethod
+    def validate_Tuple(
+        cls,
+        target: Any,
+        *,
+        allowed_empty: bool = False,
+        min_length: int | None = None,
+        max_length: int | None = None,
+        allowed_types: type | tuple[type, ...] | None = None,
+        allow_duplication: bool = True,
+        allowed_values: Sequence[Any] | None = None,
+        forbidden_values: Sequence[Any] | None = None,
+    ) -> None:
+        """Validate tuple objects.
+
+        Parameters
+        ----------
+        target : Any
+            The object to validate, must be of type `tuple`.
+        allowed_empty : bool
+            Whether an empty tuple is allowed. Defaults to False.
+        min_length : int | None
+            Minimum number of elements allowed in the tuple (inclusive).
+        max_length : int | None
+            Maximum number of elements allowed in the tuple (inclusive).
+        allowed_types : type | tuple[type, ...] | None
+            Type or tuple of types allowed for tuple elements.
+            Example: allowed_types=(int, str)
+        allow_duplication : bool
+            Whether duplicate values are allowed in the tuple.
+        allowed_values : Sequence[Any] | None
+            Optional whitelist of permitted element values.
+        forbidden_values : Sequence[Any] | None
+            Optional blacklist of disallowed element values.
+        """
+        if cls.skip_flag:
+            return
+
+        # --- Type check ---
+        if not isinstance(target, tuple):
+            raise TypeError(f"Expected tuple, got {type(target).__name__}")
+
+        # --- Empty tuple check ---
+        if not allowed_empty and len(target) == 0:
+            raise ValueError("Empty tuples are not allowed")
+
+        # --- Length checks ---
+        if min_length is not None and len(target) < min_length:
+            raise ValueError(f"Tuple must contain at least {min_length} elements")
+
+        if max_length is not None and len(target) > max_length:
+            raise ValueError(f"Tuple must contain at most {max_length} elements")
+
+        # --- Element type check ---
+        if allowed_types is not None:
+            if not isinstance(allowed_types, tuple):
+                allowed_types = (allowed_types,)
+            for index, element in enumerate(target):
+                if not isinstance(element, allowed_types):
+                    expected_names = ", ".join(t.__name__ for t in allowed_types)
+                    raise TypeError(
+                        f"Element at index {index} must be of type(s) {expected_names}, " f"but got {type(element).__name__}"
+                    )
+
+        # --- Duplication check ---
+        if not allow_duplication:
+            seen_hashable: set[Any] = set()
+            seen_unhashable: list[Any] = []
+
+            for element in target:
+                try:
+                    # Hashable elements (int, str, tuple, etc.)
+                    if element in seen_hashable:
+                        raise ValueError(f"Duplicate element '{element}' found in tuple")
+                    seen_hashable.add(element)
+                except TypeError:
+                    # Unhashable elements (dict, list, set, etc.)
+                    for seen in seen_unhashable:
+                        if element == seen:
+                            raise ValueError("Duplicate elements are not allowed in the tuple")
+                    seen_unhashable.append(element)
+
+        # --- Allowed values check ---
+        if allowed_values is not None:
+            for element in target:
+                if element not in allowed_values:
+                    raise ValueError(f"Element {element!r} not in allowed values: {allowed_values}")
+
+        # --- Forbidden values check ---
+        if forbidden_values is not None:
+            for element in target:
+                if element in forbidden_values:
+                    raise ValueError(f"Element {element!r} is forbidden by validation rule")
+
+    """
+    DOCCHECK TESTS:
+
+    # --- Type ---
+    >>test: cls.validate_Tuple((1, 2, 3)) is None
+    >>error: cls.validate_Tuple("not a tuple")
+    >>error: cls.validate_Tuple([1, 2, 3])      # list is not a tuple
+
+    # --- Empty tuple ---
+    >>error: cls.validate_Tuple((), allowed_empty=False)
+    >>test: cls.validate_Tuple((), allowed_empty=True) is None
+
+    # --- Length checks ---
+    >>test: cls.validate_Tuple((1, 2), min_length=2) is None
+    >>error: cls.validate_Tuple((1,), min_length=2)
+    >>test: cls.validate_Tuple((1, 2), max_length=2) is None
+    >>error: cls.validate_Tuple((1, 2, 3), max_length=2)
+
+    # --- Allowed types ---
+    >>test: cls.validate_Tuple((1, 2, 3), allowed_types=int) is None
+    >>error: cls.validate_Tuple((1, "a", 3), allowed_types=int)
+    >>test: cls.validate_Tuple((1, "a"), allowed_types=(int, str)) is None
+
+    # --- Duplication ---
+    >>test: cls.validate_Tuple((1, 2, 3), allow_duplication=True) is None
+    >>test: cls.validate_Tuple((1, 2, 3), allow_duplication=False) is None
+    >>error: cls.validate_Tuple((1, 2, 1), allow_duplication=False)
+    >>error: cls.validate_Tuple(({"a": 1}, {"a": 1}), allow_duplication=False)
+    >>test: cls.validate_Tuple(({"a": 1}, {"b": 2}), allow_duplication=False) is None
+
+    # --- Allowed / Forbidden values ---
+    >>test: cls.validate_Tuple(("a", "b", "c"), allowed_values=["a", "b", "c", "d"]) is None
+    >>error: cls.validate_Tuple(("x", "y"), allowed_values=["a", "b", "c"])
+    >>test: cls.validate_Tuple((1, 2, 3), forbidden_values=[9, 10]) is None
+    >>error: cls.validate_Tuple((1, 2, 9), forbidden_values=[9, 10])
+    """
