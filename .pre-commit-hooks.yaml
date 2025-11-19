@@ -1,6 +1,6 @@
 - id: flaw2flow
-  name: Flaw2Flow 
-  entry: flaw2flow
+  name: flaw2flow 
+  entry: f2f_guard
   language: python
   description: "A type domain validation library with a hook to enforce each function validation"
   types: [python]
