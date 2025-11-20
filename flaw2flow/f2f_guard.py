@@ -452,11 +452,6 @@ def main() -> None:
 
     Usage:
         f2f_guard path1 [path2 ...] [--exclude=REGEX]
-
-    Examples:
-        f2f_guard src/
-        f2f_guard src/ --exclude='.*test.*'
-        f2f_guard a.py b.py
     """
 
     parser = argparse.ArgumentParser(description="flaw2flow validation guard")
@@ -471,7 +466,7 @@ def main() -> None:
         "--exclude",
         type=str,
         default=None,
-        help="Regex pattern to exclude matching paths",
+        help="Regex pattern to exclude matching paths (against relative paths)",
     )
 
     args = parser.parse_args()
@@ -479,10 +474,22 @@ def main() -> None:
     # Compile regex if provided
     exclude_re = re.compile(args.exclude) if args.exclude else None
 
-    errors: list[str] = []
+    # Base directory for converting to relative paths
+    root_dir = os.getcwd()
+
+    def rel(path: str) -> str:
+        """Return path relative to project root."""
+        try:
+            return os.path.relpath(path, root_dir)
+        except Exception:
+            return path  # fallback
 
     def should_Skip(path: str) -> bool:
-        return bool(exclude_re and exclude_re.search(path))
+        """Check regex against relative path."""
+        r = rel(path)
+        return bool(exclude_re and exclude_re.search(r))
+
+    errors: list[str] = []
 
     for path in args.paths:
         if should_Skip(path):
@@ -491,13 +498,19 @@ def main() -> None:
         try:
             if os.path.isdir(path):
                 # Recursively validate files in directories
-                for root, _, files in os.walk(path):
+                for root, dirs, files in os.walk(path):
+                    # Exclude whole directories early
+                    dirs[:] = [d for d in dirs if not should_Skip(os.path.join(root, d))]
+
                     for fname in files:
                         if not fname.endswith(".py"):
                             continue
+
                         full = os.path.join(root, fname)
+
                         if should_Skip(full):
                             continue
+
                         try:
                             F2FGuard.validate_File(full)
                         except Exception as e:
@@ -505,7 +518,8 @@ def main() -> None:
 
             else:
                 # Single file
-                F2FGuard.validate_File(path)
+                if not should_Skip(path):
+                    F2FGuard.validate_File(path)
 
         except Exception as e:
             errors.append(f"{path}: {e}")
