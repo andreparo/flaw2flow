@@ -28,7 +28,6 @@ enable=
 
 
 
-
 [NAMING]
 # PascalCase for class names, including accented letters
 class-rgx=^[A-ZÀÈÉÌÒÙ][a-zàèéìòùA-ZÀÈÉÌÒÙ0-9]+$

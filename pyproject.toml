@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flaw2flow"
-version = "0.1.8"
+version = "0.1.9"
 description = "flaw2flow is a Python module made to validate data in Python"
 readme = "README.md"
 authors = [
@@ -29,3 +29,6 @@ Issues = "https://github.com/andreparo/flaw2flow/issues"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["flaw2flow*"]
+
+[project.scripts]
+f2f_guard = "flaw2flow.f2f_guard:main"
