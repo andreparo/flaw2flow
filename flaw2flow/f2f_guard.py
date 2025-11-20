@@ -391,6 +391,7 @@ class F2FGuard:
     @classmethod
     def validate_File(cls, path: str) -> None:
         """Validate a single Python file."""
+        sys.path.insert(0, os.getcwd())
         if not os.path.exists(path):
             raise FileNotFoundError(f"File not found: {path}")
         if not path.endswith(".py"):
