@@ -5,6 +5,9 @@ from typing import Any, get_type_hints, get_origin, get_args
 import os
 import importlib.util
 from types import ModuleType
+import argparse
+import re
+import sys
 
 
 class F2FGuard:
@@ -441,3 +444,80 @@ class F2FGuard:
     >>error: F2FGuard.validate_File("flaw2flow/sandbox/wrong_validation_int.py")
 
     """
+
+
+def main() -> None:
+    """
+    CLI entry point for flaw2flow validation.
+
+    Usage:
+        f2f_guard path1 [path2 ...] [--exclude=REGEX]
+
+    Examples:
+        f2f_guard src/
+        f2f_guard src/ --exclude='.*test.*'
+        f2f_guard a.py b.py
+    """
+
+    parser = argparse.ArgumentParser(description="flaw2flow validation guard")
+
+    parser.add_argument(
+        "paths",
+        nargs="+",
+        help="Python file or directory to validate",
+    )
+
+    parser.add_argument(
+        "--exclude",
+        type=str,
+        default=None,
+        help="Regex pattern to exclude matching paths",
+    )
+
+    args = parser.parse_args()
+
+    # Compile regex if provided
+    exclude_re = re.compile(args.exclude) if args.exclude else None
+
+    errors: list[str] = []
+
+    def should_Skip(path: str) -> bool:
+        return bool(exclude_re and exclude_re.search(path))
+
+    for path in args.paths:
+        if should_Skip(path):
+            continue
+
+        try:
+            if os.path.isdir(path):
+                # Recursively validate files in directories
+                for root, _, files in os.walk(path):
+                    for fname in files:
+                        if not fname.endswith(".py"):
+                            continue
+                        full = os.path.join(root, fname)
+                        if should_Skip(full):
+                            continue
+                        try:
+                            F2FGuard.validate_File(full)
+                        except Exception as e:
+                            errors.append(f"{full}: {e}")
+
+            else:
+                # Single file
+                F2FGuard.validate_File(path)
+
+        except Exception as e:
+            errors.append(f"{path}: {e}")
+
+    # Print errors nicely
+    if errors:
+        sys.stderr.write("\nF2F validation errors:\n")
+        for err in errors:
+            sys.stderr.write(f"  - {err}\n")
+        sys.stderr.write("\n")
+        sys.exit(1)
+
+    # Success
+    print("f2f_guard: All validations passed.")
+    sys.exit(0)

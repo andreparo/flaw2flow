@@ -1,0 +1,2 @@
+[console_scripts]
+f2f_guard = flaw2flow.f2f_guard:main
