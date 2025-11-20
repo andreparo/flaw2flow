@@ -449,9 +449,7 @@ class F2FGuard:
 def main() -> None:
     """
     CLI entry point for flaw2flow validation.
-
-    Usage:
-        f2f_guard path1 [path2 ...] [--exclude=REGEX]
+    Fully supports multiple --exclude=PATTERN like DocCheck.
     """
 
     parser = argparse.ArgumentParser(description="flaw2flow validation guard")
@@ -462,19 +460,20 @@ def main() -> None:
         help="Python file or directory to validate",
     )
 
+    # IMPORTANT: collect multiple --exclude flags
     parser.add_argument(
         "--exclude",
-        type=str,
-        default=None,
-        help="Regex pattern to exclude matching paths (against relative paths)",
+        action="append",  # <--- KEY FIX (matches DocCheck behavior)
+        default=[],
+        help="Regex pattern(s) to exclude; may be used multiple times",
     )
 
     args = parser.parse_args()
 
-    # Compile regex if provided
-    exclude_re = re.compile(args.exclude) if args.exclude else None
+    # Compile all exclude regexes
+    exclude_res = [re.compile(p) for p in args.exclude]
 
-    # Base directory for converting to relative paths
+    # Base directory for relative path normalization
     root_dir = os.getcwd()
 
     def rel(path: str) -> str:
@@ -485,23 +484,26 @@ def main() -> None:
             return path  # fallback
 
     def should_Skip(path: str) -> bool:
-        """Check regex against relative path."""
+        """Check all exclude patterns against the relative path."""
         r = rel(path)
-        return bool(exclude_re and exclude_re.search(r))
+        return any(regex.search(r) for regex in exclude_res)
 
     errors: list[str] = []
 
+    # Process each provided path (files or directories)
     for path in args.paths:
         if should_Skip(path):
             continue
 
         try:
             if os.path.isdir(path):
-                # Recursively validate files in directories
+
                 for root, dirs, files in os.walk(path):
-                    # Exclude whole directories early
+
+                    # Exclude entire directories early
                     dirs[:] = [d for d in dirs if not should_Skip(os.path.join(root, d))]
 
+                    # Validate files
                     for fname in files:
                         if not fname.endswith(".py"):
                             continue
@@ -532,6 +534,9 @@ def main() -> None:
         sys.stderr.write("\n")
         sys.exit(1)
 
-    # Success
     print("f2f_guard: All validations passed.")
     sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
