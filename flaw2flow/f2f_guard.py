@@ -373,19 +373,46 @@ class F2FGuard:
 
     @staticmethod
     def _import_From_Path(path: str) -> ModuleType:
-        """Import a module from a file path and store the path in globals."""
+        """
+        Import a module in SAFE MODE:
+
+        - Removes all top-level import statements
+        - Removes all top-level executable statements
+        - Keeps only function and class definitions
+        - Attaches __f2f_path__ for tracking
+        - Does NOT execute external imports or user code
+        """
+
         module_name = os.path.splitext(os.path.basename(path))[0] + "__f2fguard__"
 
-        spec = importlib.util.spec_from_file_location(module_name, path)
-        if spec is None or spec.loader is None:
-            raise ImportError(f"Unable to load module from: {path}")
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                source = f.read()
+        except Exception as e:
+            raise RuntimeError(f"Could not read module '{path}': {e}")
 
-        module = importlib.util.module_from_spec(spec)
+        tree = ast.parse(source, filename=path)
 
-        # Attach the path safely in module's globals so validate_Function can find it
+        # New module that will contain ONLY defs (functions, classes)
+        new_body: list[Any] = []
+
+        for node in tree.body:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                new_body.append(node)
+            # skip all import and top-level executable code
+            continue
+
+        new_module = ast.Module(body=new_body, type_ignores=[])
+        ast.fix_missing_locations(new_module)
+
+        compiled = compile(new_module, filename=path, mode="exec")
+
+        module = ModuleType(module_name)
         module.__dict__["__f2f_path__"] = path
 
-        spec.loader.exec_module(module)
+        # execute sanitized module
+        exec(compiled, module.__dict__)
+
         return module
 
     @classmethod
@@ -396,8 +423,11 @@ class F2FGuard:
         if not path.endswith(".py"):
             raise ValueError(f"Expected a .py file, got: {path}")
 
-        module = cls._import_From_Path(path)
-        cls.validate_Project(module)
+        try:
+            module = cls._import_From_Path(path)
+            cls.validate_Project(module)
+        except Exception as e:
+            raise RuntimeError(f"{path}: {e}")
 
     """
     DOCHECK
