@@ -161,8 +161,6 @@ class F2FGuard:
             return {"validate_Int"}
         if annotation is float:
             return {"validate_Float"}
-        if annotation is bool:
-            return {"validate_Bool"}
         if annotation is str:
             return {"validate_String"}
         if annotation is bytes:
@@ -426,10 +424,7 @@ class F2FGuard:
     """
     DOCHECK
 
-    >>test: F2FGuard.validate_File("flaw2flow/sandbox/ok_bool_validated.py") is None
-
     >>error: F2FGuard.validate_File("flaw2flow/sandbox/constructor_missing_validation.py")
-    >>error: F2FGuard.validate_File("flaw2flow/sandbox/miss_bool_validation.py")
     >>error: F2FGuard.validate_File("flaw2flow/sandbox/miss_bytes_validation.py")
     >>error: F2FGuard.validate_File("flaw2flow/sandbox/miss_dict_validation.py")
     >>error: F2FGuard.validate_File("flaw2flow/sandbox/miss_float_validation.py")
@@ -455,7 +450,6 @@ class F2FGuard:
     >>test: F2FGuard.validate_File("flaw2flow/sandbox/ok_union_complex.py") is None
     >>test: F2FGuard.validate_File("flaw2flow/sandbox/ok_union_int_str.py") is None
 
-    >>error: F2FGuard.validate_File("flaw2flow/sandbox/wrong_bool_validator.py")
     >>error: F2FGuard.validate_File("flaw2flow/sandbox/wrong_bytes_validator.py")
     >>error: F2FGuard.validate_File("flaw2flow/sandbox/wrong_dict_validator.py")
     >>error: F2FGuard.validate_File("flaw2flow/sandbox/wrong_float_validator.py")
