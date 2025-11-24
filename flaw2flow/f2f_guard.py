@@ -391,11 +391,21 @@ class F2FGuard:
     @classmethod
     def validate_File(cls, path: str) -> None:
         """Validate a single Python file."""
-        sys.path.insert(0, os.getcwd())
         if not os.path.exists(path):
             raise FileNotFoundError(f"File not found: {path}")
         if not path.endswith(".py"):
             raise ValueError(f"Expected a .py file, got: {path}")
+
+        # Ensure the project root is importable
+        project_root: str = os.getcwd()
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
+
+        # Common src-layout support: <root>/src/<package>/...
+        src_dir: str = os.path.join(project_root, "src")
+        if os.path.isdir(src_dir) and src_dir not in sys.path:
+            # Adding src allows imports like `import home_server_systems`
+            sys.path.insert(0, src_dir)
 
         module = cls._import_From_Path(path)
         cls.validate_Project(module)

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: flaw2flow
-Version: 1.0.15
+Version: 1.0.16
 Summary: flaw2flow is a Python module made to validate data in Python
 Author-email: Andrea Parodi <andrea.parodi.mi@gmail.com>
 License: GPL-3.0-or-later
