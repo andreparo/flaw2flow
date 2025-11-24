@@ -103,24 +103,37 @@ class F2FGuard:
 
     @classmethod
     def validate_Project(cls, module: Any) -> None:
-        """Validate all functions and constructors in a module."""
+        """Validate all functions and methods in a module."""
 
         if module is None or not hasattr(module, "__name__"):
             raise TypeError(f"validate_Project expects a module/package object, got {type(module).__name__}")
 
         module_name = module.__name__
 
-        # Top-level functions
+        # Top-level functions (already in your code)
         for name, obj in vars(module).items():
             if inspect.isfunction(obj) and obj.__module__ == module_name:
                 cls.validate_Function(obj)
 
-        # Constructors (__init__)
+        # Classes and all their methods (including __init__)
         for name, obj in vars(module).items():
-            if inspect.isclass(obj) and obj.__module__ == module_name:
-                init = getattr(obj, "__init__", None)
-                if inspect.isfunction(init) or inspect.ismethod(init):
-                    cls.validate_Function(init)
+            if not inspect.isclass(obj) or obj.__module__ != module_name:
+                continue
+
+            # Walk attributes defined on the class
+            for attr_name, attr_value in vars(obj).items():
+                func_obj: Any | None = None
+
+                # Regular instance methods
+                if inspect.isfunction(attr_value):
+                    func_obj = attr_value
+
+                # @staticmethod or @classmethod
+                elif isinstance(attr_value, (staticmethod, classmethod)):
+                    func_obj = attr_value.__func__
+
+                if func_obj is not None:
+                    cls.validate_Function(func_obj)
 
     # ------------------------------------------------------------------ #
     # Internal helpers
