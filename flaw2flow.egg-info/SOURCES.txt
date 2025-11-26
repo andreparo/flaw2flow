@@ -11,7 +11,6 @@ flaw2flow.egg-info/entry_points.txt
 flaw2flow.egg-info/top_level.txt
 flaw2flow/sandbox/__init__.py
 flaw2flow/sandbox/constructor_missing_validation.py
-flaw2flow/sandbox/miss_bool_validation.py
 flaw2flow/sandbox/miss_bytes_validation.py
 flaw2flow/sandbox/miss_dict_validation.py
 flaw2flow/sandbox/miss_float_validation.py
@@ -23,7 +22,6 @@ flaw2flow/sandbox/miss_tuple_validation.py
 flaw2flow/sandbox/miss_union_complex_member.py
 flaw2flow/sandbox/miss_union_member.py
 flaw2flow/sandbox/miss_validation_int.py
-flaw2flow/sandbox/ok_bool_validated.py
 flaw2flow/sandbox/ok_bytes_validated.py
 flaw2flow/sandbox/ok_constructor_validated.py
 flaw2flow/sandbox/ok_dict_validated.py
@@ -36,7 +34,6 @@ flaw2flow/sandbox/ok_string_validated.py
 flaw2flow/sandbox/ok_tuple_validated.py
 flaw2flow/sandbox/ok_union_complex.py
 flaw2flow/sandbox/ok_union_int_str.py
-flaw2flow/sandbox/wrong_bool_validator.py
 flaw2flow/sandbox/wrong_bytes_validator.py
 flaw2flow/sandbox/wrong_dict_validator.py
 flaw2flow/sandbox/wrong_float_validator.py
