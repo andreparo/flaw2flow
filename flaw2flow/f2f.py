@@ -523,11 +523,19 @@ class F2F:
                     raise ValueError(f"String must contain '{substring}'")
 
         # --- Case checks ---
-        if must_be_lowercase and not target.islower():
-            raise ValueError("String must be all lowercase")
+        if must_be_lowercase:
 
-        if must_be_uppercase and not target.isupper():
-            raise ValueError("String must be all uppercase")
+            for char in target:
+                if char.isupper():
+                    target_preview = target if len(target) <= 200 else target[:200] + "..."
+                    raise ValueError(f"String must be all lowercase: error for {char=} in target={target_preview}")
+
+        if must_be_uppercase:
+
+            for char in target:
+                if char.islower():
+                    target_preview = target if len(target) <= 200 else target[:200] + "..."
+                    raise ValueError(f"String must be all uppercase: error for {char=} in target={target_preview}")
 
         # --- ASCII check ---
         if ascii_only and not target.isascii():
