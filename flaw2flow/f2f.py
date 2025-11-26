@@ -662,7 +662,8 @@ class F2F:
     >>error: cls.validate_String(123)
 
     # --- Length ---
-    >>test: cls.validate_String("abc", min_length=2) is None
+
+    >>test: cls.validate_String("abcàééÈ", min_length=2) is None
     >>error: cls.validate_String("a", min_length=2)
     >>error: cls.validate_String("abc", max_length=2) 
     >>test: cls.validate_String("a", max_length=2) is None
