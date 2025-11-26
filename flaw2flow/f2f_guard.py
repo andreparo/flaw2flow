@@ -95,12 +95,6 @@ class F2FGuard:
             if missing:
                 raise ValueError(f"Function '{func.__qualname__}': parameter '{pname}' " f"is missing validator(s): {sorted(missing)}")
 
-            extra = actual_set - required_set
-            if extra:
-                raise ValueError(
-                    f"Function '{func.__qualname__}': parameter '{pname}' " f"has unexpected validator(s): {sorted(extra)}"
-                )
-
     @classmethod
     def validate_Project(cls, module: Any) -> None:
         """Validate all functions and methods in a module."""
