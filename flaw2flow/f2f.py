@@ -620,10 +620,11 @@ class F2F:
             allowed_chars.update(string.digits)
         if allow_special:
             allowed_chars.update(string.punctuation)
-        if allow_whitespaces:
-            allowed_chars.add(" ")
+        if not allow_whitespaces:
+            if "".join(target.split()) != target:
+                raise ValueError(f"Whitespace not allowed in string")
 
-        for char in target:
+        for char in "".join(target.split()):
             if char not in allowed_chars:
                 raise ValueError(f"Invalid character '{char}' not allowed by composition rules")
 
@@ -953,6 +954,7 @@ class F2F:
             if not isinstance(allowed_types, tuple):
                 allowed_types = (allowed_types,)
             for index, element in enumerate(target):
+
                 if not isinstance(element, allowed_types):
                     expected_names = ", ".join(t.__name__ for t in allowed_types)
                     raise TypeError(
