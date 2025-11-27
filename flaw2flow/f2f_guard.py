@@ -127,6 +127,9 @@ class F2FGuard:
                     func_obj = attr_value.__func__
 
                 if func_obj is not None:
+                    # Only validate functions actually defined in this module
+                    if func_obj.__module__ != module_name:
+                        continue
                     cls.validate_Function(func_obj)
 
     # ------------------------------------------------------------------ #
